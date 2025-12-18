@@ -11,18 +11,26 @@ const taskRoutes = require('./routes/taskRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 // =======================
-// Middleware
+// Middleware (Order matters!)
 // =======================
-app.use(cors());
+
+// ✅ CORS - MUST be first
+app.use(cors({
+  origin: '*', // Allow all origins in development
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// ✅ Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files
+// ✅ Serve static files BEFORE logging middleware
 app.use(express.static('public'));
 
-// Log all requests
+// ✅ Log all requests (helpful for debugging)
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
+  console.log(`${new Date().toLocaleTimeString()} | ${req.method} ${req.path}`);
   next();
 });
 
@@ -30,7 +38,7 @@ app.use((req, res, next) => {
 // Routes
 // =======================
 
-// Root route (serves UI or API info)
+// Root route (serves UI)
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 });
@@ -38,18 +46,27 @@ app.get('/', (req, res) => {
 // API routes
 app.use('/api', taskRoutes);
 
+// Health check endpoint (useful for debugging)
+app.get('/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // =======================
 // 404 handler
 // =======================
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    message: `Route not found: ${req.method} ${req.path}`
   });
 });
 
 // =======================
-// Error handling middleware
+// Error handling middleware (MUST be last)
 // =======================
 app.use(errorHandler);
 
@@ -60,6 +77,8 @@ app.listen(PORT, () => {
   console.log('=================================');
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 http://localhost:${PORT}`);
+  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+  console.log(`📋 API endpoint: http://localhost:${PORT}/api/tasks`);
   console.log('=================================');
 });
 
