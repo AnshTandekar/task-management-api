@@ -16,7 +16,7 @@
     "Express",
     "Node.js"
   ],
-  "author": "Your Name",
+  "author": "Ansh Tandekar",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
